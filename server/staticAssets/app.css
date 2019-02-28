@@ -1,0 +1,178 @@
+body {
+  width: 100vw;
+  height: 100vh;
+
+  background-color: aquamarine;
+
+  font-family: 'Lemon';
+
+  display:flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.header {
+  width: 100vw;
+  height: 11vh;
+
+  font-size: 2vw;
+
+  display:flex;
+  flex-direction: row;
+  justify-content: space-around;
+}
+
+.logo {
+  width: 10vw;
+}
+
+.menu {
+  width: 90vw;
+    
+  display:flex;
+  flex-direction: row;
+  justify-content: space-around;
+}
+
+.menu li {
+  line-height: 11vh;
+  text-align: center;
+}
+
+.content {
+  width: 100vw;
+  height: 84vh;
+
+  background-color: orange;
+
+  display:flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+.content h1 {
+  font-size: 3vw;
+  text-align: center;
+}
+
+.content h2 {
+  font-size: 2vw;
+  text-align: center;
+}
+
+.content > div {
+  font-size: 1.5vw;
+  text-align: center;
+}
+
+.content button {
+  box-sizing: border-box;
+  width: 20vw;
+  border: 2px solid black;
+  border-radius: 1vh;
+  padding: 1vh 1vw;
+  background-color: aquamarine;
+  font-size: 2vh;
+}
+
+.contentError {
+  color: red;
+}
+
+#myOrders {
+  height: 50vh;
+  display: block;
+  overflow: auto;
+}
+
+.orderSelect {
+  display: flex;
+  flex-direction: row;
+  justify-content: left;
+  padding-left: 10vw;
+}
+
+.orderTime, .orderStatus, .orderTotal {
+  font-size: 3vh;
+  line-height: 4vh;
+  height: 4vh;
+}
+
+.order button {
+  box-sizing: border-box;
+  border: 2px solid black;
+  border-radius: 1vh;
+  padding: 1vh 1vw;
+  background-color: aquamarine;
+  display: inline-block;
+  width: auto;
+}
+
+.orderSpan {
+  padding: 0 1vw;
+}
+
+#myMenu, #myOrder {
+  height: 50vh;
+  display: block;
+  overflow: auto;
+}
+
+.pizza {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  padding: 2vw;
+}
+
+.pizzaSelect {
+  padding: 10px;
+
+  display:flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+}
+
+.pizzaOrderLess, .pizzaOrderMore {
+  width: 5vw;
+  box-sizing: border-box;
+  border: 2px solid black;
+  border-radius: 1vh;
+  padding: 1vh 1vw;
+  background-color: aquamarine;
+  font-size: 1.5vh;
+}
+
+
+
+form .formError {
+  color: red;
+}
+
+.spacerSmall {
+  height: 4px;
+}
+
+.spacerBig {
+  height: 12px;
+}
+
+form button {
+  box-sizing: border-box;
+  border: 2px solid black;
+  border-radius: 1vh;
+  padding: 1vh 1vw;
+  background-color: aquamarine;
+}
+
+.footer {
+  width: 100vw;
+  height: 5vh;
+}
+
+.footer .copyright {
+  line-height: 5vh;
+  font-size: 1vw;
+
+  float: right;
+}
