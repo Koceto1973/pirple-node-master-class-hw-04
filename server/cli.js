@@ -38,7 +38,19 @@ e.on('more user info',function(str){
 });
 
 e.on('list new users', function(str){
-  cli.responders.listnewusers();
+  cli.responders.listNewUsers();
+});
+
+e.on('list orders',function(str){
+  cli.responders.listOrders(str);
+});
+
+e.on('more order info',function(str){
+  cli.responders.moreOrderInfo(str);
+});
+
+e.on('list new orders',function(str){
+  cli.responders.listNewOrders(str);
 });
 
 // Responders object
@@ -56,7 +68,8 @@ cli.responders.help = function(){
      'list users' : 'Show a list of all the registered (undeleted) users in the system',
      'list new users' : 'Show a list of all the registered ( undeleted ) users in the system for the last 24 hrs',
      'more user info --{email}' : 'Show details of a specified user',
-     'list orders --up --down' : 'Show a list of all the active checks in the system, including their state. The "--up" and "--down flags are both optional."',
+     'list orders --optionalFlag' : 'Show a list of all the active orders in the system, including their status, optionalFlag is "accepted", "updated" or "payed/ check mail"',
+     'list new orders' : 'Show a list of all the registered ( undeleted ) orders in the system for the last 24 hrs',
      'more order info --{checkId}' : 'Show details of a specified check',
      'menu' : 'Show available menu'
    };
@@ -130,7 +143,8 @@ cli.responders.moreUserInfo = function(str){
 
 };
 
-cli.responders.listnewusers = function(){
+// List new Users ( Signed Up in the last 24 hrs )
+cli.responders.listNewUsers = function(){
   _data.list('users',function(err,userIds){
     if(!err && userIds && userIds.length > 0){
       cli.verticalSpace();
@@ -141,6 +155,67 @@ cli.responders.listnewusers = function(){
 
         if(now-userFileCreated<24*60*60*1000){ // if created within 24 hrs
           var line = 'User Email: '+userId+' Signed Up: '+((now-userFileCreated)/1000/60/60).toFixed(1)+' hours ago';
+          console.log(line);
+          cli.verticalSpace();
+        }
+      });
+    }
+  });
+};
+
+// List Orders
+cli.responders.listOrders = function(str){
+  _data.list('orders',function(err,orderIds){
+    if(!err && orderIds && orderIds.length > 0){
+      cli.verticalSpace();
+      orderIds.forEach(function(orderId){
+        _data.read('orders',orderId.replace('.json',''),function(err,orderData){
+          if(!err && orderData){
+            var loweredString = str.toLowerCase();
+            var userStatus = loweredString.length>11 ? loweredString.slice(14) : 'undefined';
+            if(loweredString.length === 11 || (orderData.status===userStatus)){
+              var line = 'ID: '+orderData.id+' '+' Status: '+ orderData.status;
+              console.log(line);
+              cli.verticalSpace();
+            }
+          }
+        });
+      });
+    }
+  });
+};
+
+// More order info
+cli.responders.moreOrderInfo = function(str){
+  // Get ID from string
+  var arr = str.split('--');
+  var orderId = typeof(arr[1]) == 'string' && arr[1].trim().length > 0 ? arr[1].trim() : false;
+  if(orderId){
+    // Lookup the user
+    _data.read('orders',orderId,function(err,orderData){
+      if(!err && orderData){
+
+        // Print their JSON object with text highlighting
+        cli.verticalSpace();
+        console.dir(orderData,{'colors' : true});
+        cli.verticalSpace();
+      }
+    });
+  }
+};
+
+// List new Orders ( registered in the last 24 hrs )
+cli.responders.listNewOrders = function(){
+  _data.list('orders',function(err,orderIds){
+    if(!err && orderIds && orderIds.length > 0){
+      cli.verticalSpace();
+      var now = Date.now();
+      var orderFilePath = path.join(__dirname,'./.data/orders/');
+      orderIds.forEach(function(orderId){
+        var orderFileCreated = fs.statSync(orderFilePath+orderId).birthtimeMs;
+
+        if(now-orderFileCreated<24*60*60*1000){ // if created within 24 hrs
+          var line = 'OrderID: '+orderId+' created: '+((now-orderFileCreated)/1000/60/60).toFixed(1)+' hours ago';
           console.log(line);
           cli.verticalSpace();
         }
@@ -215,8 +290,9 @@ cli.processInput = function(str){
       'list users',
       'more user info',
       'list new users',
-      'list checks',
-      'more check info',
+      'list orders',
+      'more order info',
+      'list new orders',
       'menu'
     ];
 
