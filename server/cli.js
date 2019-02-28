@@ -1,10 +1,14 @@
 // CLI here
 
 // Dependencies
+var path = require('path');
+var fs = require('fs');
 var readline = require('readline');
 var util = require('util');
 var debug = util.debuglog('cli');
 var events = require('events');
+
+var _data = require('./data');
 
 class _events extends events{};
 var e = new _events();
@@ -25,6 +29,18 @@ e.on('exit',function(str){
   cli.responders.exit();
 });
 
+e.on('list users',function(str){
+  cli.responders.listUsers();
+});
+
+e.on('more user info',function(str){
+  cli.responders.moreUserInfo(str);
+});
+
+e.on('list new users', function(str){
+  cli.responders.listnewusers();
+});
+
 // Responders object
 cli.responders = {};
  
@@ -38,7 +54,8 @@ cli.responders.help = function(){
      'help' : 'Alias of the "man" command',
      'stats' : 'Get statistics on the underlying operating system and resource utilization',
      'list users' : 'Show a list of all the registered (undeleted) users in the system',
-     'more user info --{userId}' : 'Show details of a specified user',
+     'list new users' : 'Show a list of all the registered ( undeleted ) users in the system for the last 24 hrs',
+     'more user info --{email}' : 'Show details of a specified user',
      'list orders --up --down' : 'Show a list of all the active checks in the system, including their state. The "--up" and "--down flags are both optional."',
      'more order info --{checkId}' : 'Show details of a specified check',
      'menu' : 'Show available menu'
@@ -69,6 +86,67 @@ cli.responders.help = function(){
    // End with another horizontal line
    cli.horizontalLine();
  
+};
+
+// List Users
+cli.responders.listUsers = function(){
+  _data.list('users',function(err,userIds){
+    if(!err && userIds && userIds.length > 0){
+      cli.verticalSpace();
+      userIds.forEach(function(userId){
+        _data.read('users',userId.replace('.json',''),function(err,userData){
+          if(!err && userData){
+            var line = 'Name: '+userData.name+' '+' Email: '+userData.email+' Address: '+userData.address+' Orders: ';
+            var numberOfOrders = typeof(userData.orders) == 'object' && userData.orders instanceof Array && userData.orders.length > 0 ? userData.orders.length : 0;
+            line+=numberOfOrders;
+            console.log(line);
+            cli.verticalSpace();
+          }
+        });
+      });
+    }
+  });
+};
+
+// More user info
+cli.responders.moreUserInfo = function(str){
+  // Get ID from string
+  var arr = str.split('--');
+  var userId = typeof(arr[1]) == 'string' && arr[1].trim().length > 0 ? arr[1].trim() : false;
+  if(userId){
+    // Lookup the user
+    _data.read('users',userId,function(err,userData){
+      if(!err && userData){
+        // Remove the hashed password
+        delete userData.hashedPassword;
+
+        // Print their JSON object with text highlighting
+        cli.verticalSpace();
+        console.dir(userData,{'colors' : true});
+        cli.verticalSpace();
+      }
+    });
+  }
+
+};
+
+cli.responders.listnewusers = function(){
+  _data.list('users',function(err,userIds){
+    if(!err && userIds && userIds.length > 0){
+      cli.verticalSpace();
+      var now = Date.now();
+      var userFilePath = path.join(__dirname,'./.data/users/');
+      userIds.forEach(function(userId){
+        var userFileCreated = fs.statSync(userFilePath+userId).birthtimeMs;
+
+        if(now-userFileCreated<24*60*60*1000){ // if created within 24 hrs
+          var line = 'User Email: '+userId+' Signed Up: '+((now-userFileCreated)/1000/60/60).toFixed(1)+' hours ago';
+          console.log(line);
+          cli.verticalSpace();
+        }
+      });
+    }
+  });
 };
 
 // Exit
@@ -136,6 +214,7 @@ cli.processInput = function(str){
       'stats',
       'list users',
       'more user info',
+      'list new users',
       'list checks',
       'more check info',
       'menu'
