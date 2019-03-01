@@ -7,6 +7,8 @@ var readline = require('readline');
 var util = require('util');
 var debug = util.debuglog('cli');
 var events = require('events');
+var os = require('os');
+var v8 = require('v8');
 
 var _data = require('./data');
 
@@ -23,6 +25,10 @@ e.on('man',function(str){
 
 e.on('help',function(str){
   cli.responders.help();
+});
+
+e.on('stats',function(str){
+  cli.responders.stats();
 });
 
 e.on('exit',function(str){
@@ -53,6 +59,10 @@ e.on('list new orders',function(str){
   cli.responders.listNewOrders(str);
 });
 
+e.on('menu',function(str){
+  cli.responders.menu();
+});
+
 // Responders object
 cli.responders = {};
  
@@ -68,7 +78,7 @@ cli.responders.help = function(){
      'list users' : 'Show a list of all the registered (undeleted) users in the system',
      'list new users' : 'Show a list of all the registered ( undeleted ) users in the system for the last 24 hrs',
      'more user info --{email}' : 'Show details of a specified user',
-     'list orders --optionalFlag' : 'Show a list of all the active orders in the system, including their status, optionalFlag is "accepted", "updated" or "payed/ check mail"',
+     'list orders --optionalFlag' : 'Show a list of all the active orders, optionalFlag is "accepted", "updated" or "payed/ check mail"',
      'list new orders' : 'Show a list of all the registered ( undeleted ) orders in the system for the last 24 hrs',
      'more order info --{checkId}' : 'Show details of a specified check',
      'menu' : 'Show available menu'
@@ -99,6 +109,47 @@ cli.responders.help = function(){
    // End with another horizontal line
    cli.horizontalLine();
  
+};
+
+// Stats
+cli.responders.stats = function(){
+  // Compile an object of stats
+  var stats = {
+    'Load Average' : os.loadavg().join(' '),
+    'CPU Count' : os.cpus().length,
+    'Free Memory' : os.freemem(),
+    'Current Malloced Memory' : v8.getHeapStatistics().malloced_memory,
+    'Peak Malloced Memory' : v8.getHeapStatistics().peak_malloced_memory,
+    'Allocated Heap Used (%)' : Math.round((v8.getHeapStatistics().used_heap_size / v8.getHeapStatistics().total_heap_size) * 100),
+    'Available Heap Allocated (%)' : Math.round((v8.getHeapStatistics().total_heap_size / v8.getHeapStatistics().heap_size_limit) * 100),
+    'Uptime' : os.uptime()+' Seconds'
+  };
+
+  // Create a header for the stats
+  cli.horizontalLine();
+  cli.centered('SYSTEM STATISTICS');
+  cli.horizontalLine();
+  cli.verticalSpace(2);
+
+  // Log out each stat
+  for(var key in stats){
+     if(stats.hasOwnProperty(key)){
+        var value = stats[key];
+        var line = '      \x1b[33m '+key+'      \x1b[0m';
+        var padding = 60 - line.length;
+        for (i = 0; i < padding; i++) {
+            line+=' ';
+        }
+        line+=value;
+        console.log(line);
+        cli.verticalSpace();
+     }
+  }
+
+  // Create a footer for the stats
+  cli.verticalSpace();
+  cli.horizontalLine();
+
 };
 
 // List Users
@@ -220,6 +271,18 @@ cli.responders.listNewOrders = function(){
           cli.verticalSpace();
         }
       });
+    }
+  });
+};
+
+// Showing the menu
+cli.responders.menu = function(){
+  _data.read('menu','menu',function(err,menuData){
+    if(!err&&menuData){
+      // Print the JSON object with text highlighting
+      cli.verticalSpace();
+      console.dir(menuData,{'colors' : true});
+      cli.verticalSpace();
     }
   });
 };

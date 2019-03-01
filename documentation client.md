@@ -1,4 +1,4 @@
-1. View all the current menu items
+1. View all the current menu items.
 
 2. View all the recent orders in the system (orders placed in the last 24 hours).
 
